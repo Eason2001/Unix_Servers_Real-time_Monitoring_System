@@ -1,0 +1,67 @@
+Script started on Sun Mar  5 18:02:06 2017
+[?1034hbash-3.2$ date > mytest.txt
+bash-3.2$ ls-l
+bash: ls-l: command not found
+bash-3.2$ ll
+bash: ll: command not found
+bash-3.2$ ls -l
+total 2408
+-rw-r--r--  1 Steven  staff    1245  3  5 17:50 README.md
+-rw-r--r--  1 Steven  staff  658452  3  5 17:50 Realtime Monitoring System Inception Final.docx
+-rw-r--r--  1 Steven  staff  556338  3  5 17:50 Realtime Monitoring System Inception Final.pdf
+-rw-r--r--  1 Steven  staff      48  3  5 18:04 mytest.txt
+-rw-r--r--  1 Steven  staff      90  3  5 18:04 record.txt
+-rw-r--r--  1 Steven  staff      48  3  5 17:51 test.txt
+bash-3.2$ git status
+On branch master
+Your branch is up-to-date with 'origin/master'.
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+
+	[31mmytest.txt[m
+	[31mrecord.txt[m
+
+nothing added to commit but untracked files present (use "git add" to track)
+bash-3.2$ git add mytez[Kst.txt
+bash-3.2$ git status
+On branch master
+Your branch is up-to-date with 'origin/master'.
+Changes to be committed:
+  (use "git reset HEAD <file>..." to unstage)
+
+	[32mnew file:   mytest.txt[m
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+
+	[31mrecord.txt[m
+
+[master 6996866] steven test
+ Committer: 白云鹏 <Steven@baiyunpengdeMacBook-Pro.local>
+Your name and email address were configured automatically based
+on your username and hostname. Please check that they are accurate.
+You can suppress this message by setting them explicitly. Run the
+following command and follow the instructions in your editor to edit
+your configuration file:
+
+    git config --global --edit
+
+After doing this, you may fix the identity used for this commit with:
+
+    git commit --amend --reset-author
+
+ 1 file changed, 1 insertion(+)
+ create mode 100644 mytest.txt
+bash-3.2$ git push
+Counting objects: 3, done.
+Delta compression using up to 4 threads.
+Compressing objects:  50% (1/2)   Compressing objects: 100% (2/2)   Compressing objects: 100% (2/2), done.
+Writing objects:  33% (1/3)   Writing objects:  66% (2/3)   Writing objects: 100% (3/3)   Writing objects: 100% (3/3), 341 bytes | 0 bytes/s, done.
+Total 3 (delta 1), reused 0 (delta 0)
+remote: Resolving deltas:   0% (0/1)   [Kremote: Resolving deltas: 100% (1/1)   [Kremote: Resolving deltas: 100% (1/1), completed with 1 local objects.[K
+To https://github.com/Eason2001/Unix_Servers_Real-time_Monitoring_System
+   50e5181..6996866  master -> master
+bash-3.2$ exit
+exit
+
+Script done on Sun Mar  5 18:07:51 2017
