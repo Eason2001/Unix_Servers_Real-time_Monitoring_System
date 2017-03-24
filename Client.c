@@ -12,7 +12,12 @@
 
 extern void sig_proccess(int signo);
 extern void sig_pipe(int signo);
+extern int SERVERSNUM;
+extern int SERVERPORT;
 static int cliSock;
+
+
+struct serverPerform climaServer;
 
 
 void sig_proccess_client(int signo)
@@ -22,7 +27,7 @@ void sig_proccess_client(int signo)
     exit(0);    
 }
 
-#define SERVERPORT 8888   /* 侦听端口地址 */
+
 int main(int argc, char *argv[])
 {
 
@@ -30,8 +35,13 @@ int main(int argc, char *argv[])
     int err;/* 返回值 */
 
     //设置程序运行环境，当程序接受到外界的SIGINT中断信号，
-    signal(SIGINT, sig_proccess);
-    signal(SIGPIPE, sig_pipe); //ignoring the signal: SIG_IGN
+    signal(SIGINT, sig_proccess);    //sig_proccess
+    signal(SIGPIPE, SIG_IGN);   //sig_pipe
+    signal(SIGHUP, SIG_IGN);   //sig_proccess
+    signal(SIGQUIT, SIG_IGN);   //sig_proccess
+    //ignoring the signal: SIG_IGN
+
+
 
     /* 建立一个流式套接字 */
     cliSock = socket(AF_INET, SOCK_STREAM, 0);
@@ -46,7 +56,6 @@ int main(int argc, char *argv[])
       printf("Couldn't optimize setting for cliSock.)\n");
       return -1;
     };
-
 
 
     /* 设置服务器地址 */
@@ -66,9 +75,10 @@ int main(int argc, char *argv[])
     // };
     
 
-    process_conn_client(cliSock); /* 客户端处理过程 */
+    process_conn_clientTS(cliSock); /* 客户端处理过程 */
     close(cliSock);   /* 关闭连接 */
     printf("exit\n");
     exit(0);
+
 
 }
