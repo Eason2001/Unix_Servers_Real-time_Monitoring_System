@@ -1,0 +1,21 @@
+File description:
+1. Server source file: Server.c, extFunc.c(functions library)
+2. android_client testing tool source file: Android_Client.c 
+
+
+
+How to run the server side application?
+
+1. configure the Server.config file
+a. configure the "MASTER_FLAG=1", the server will run under the master mode;
+	----for your convince, I have configured the folder named "master". run the application in this folder and the master server will be started
+b. configure the "MASTER_FLAG=0", the server will run under the slave mode;
+	----for your convince, I have configured the folder named "slave". run the application in this folder and the slave server will be started
+
+2. start the master server firstly and then run the slave server secondly, the order is very important
+
+3. then you can see the communication between master and slave server
+	
+4. the real android client from a cellphone can connect to the master server now
+
+NOTE: the android_client is only a testing tool, and it can accept three servers size information from master server by default. You need to update "SERVERNUM" in its source file and rebuild it if you want it to handle more servers information.
