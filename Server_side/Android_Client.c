@@ -201,6 +201,9 @@ void process_conn_clientTS(int s)
 
     }
 
+    //release the socket, release the dynamic memory
+    close(s);
+    free(revSerInfo);
 
 }
 
@@ -208,7 +211,7 @@ void process_conn_clientTS(int s)
 //interrup signal handling function
 void sig_proccess(int signo)
 {
-    printf("Catch a exit signal!\n");
+    printf("Catch a exit signal!\n");  
     kill(0,SIGTERM);
     printf("the program will exit\n");
     exit(1);
@@ -220,7 +223,7 @@ void sig_proccess(int signo)
 void sig_pipe(int sign)
 {
     //can be different from sig_process according to different requirement
-    printf("Catch a SIGPIPE signal!\n");
+    printf("Catch a SIGPIPE signal!\n");  
     kill(0,SIGTERM);
     printf("the program will exit\n");
     exit(1);

@@ -29,22 +29,22 @@ extern void init();
 int main(int argc, char *argv[])
 {
 
-    int err;    /* 返回值 */
-    pid_t pid1;  /* 分叉的进行id */
+    int err;    //return value
+    pid_t pid1;  
 
-
+    //initiating the server
     init();  
 
 
     //fork the first process to monitor its own system performance
-    pid1 = fork();       /* 分叉进程 */
-    if ( pid1 < 0 )  /* 在父进程中关闭客户端的连接 */
+    pid1 = fork();       
+    if ( pid1 < 0 )  
     {
-        /* code */
+       
         perror("fork process error");
         return -1;
     };
-    if( pid1 == 0 )  /* 第一个子进程中:自我监控 */
+    if( pid1 == 0 )  
     {     
         monitor_workload_self();
       
@@ -53,25 +53,25 @@ int main(int argc, char *argv[])
  
 
 
-    if (MASTER_FLAG==1)   //it is a master server
+    if (MASTER_FLAG==1)   //it is a master server, listening on a port to provide service
     {
-        /* code */
-        int serSock,cliSock, tcpFlag;      /* serSock为服务器的socket描述符,cliSock为客户端的socket描述符 */
-        struct sockaddr_in server_addr; /* 服务器地址结构 */
-        struct sockaddr_in client_addr; /* 客户端地址结构 */    
+  
+        int serSock,cliSock, tcpFlag;      
+        struct sockaddr_in server_addr; 
+        struct sockaddr_in client_addr;     
         char client_name[INET_ADDRSTRLEN];
-        pid_t pid2;  /* 分叉的进行id */
+        pid_t pid2;  
 
-        printf("forking the second process for listening ...\n"); 
-        /* 建立一个流式套接字 */
+        printf("creating the socket for listening ...\n"); 
+     
         //UPD:SOCK_DGRAM   TCP:SOCK_STREAM
         serSock = socket(AF_INET, SOCK_STREAM, 0);
-        if(serSock < 0){/* 出错 */
+        if(serSock < 0){
             perror("socket error");
             return -1;  
         };
 
-        /* Disable the Nagle (TCP No Delay) algorithm */
+        //optimizing the socket timeout 
         err = optimi_socket(serSock);
         if (err < 0) {
           perror("Couldn't optimize setting for serSock.)");
@@ -79,73 +79,72 @@ int main(int argc, char *argv[])
         };
 
 
-        /* 设置服务器地址 */
-        bzero(&server_addr, sizeof(server_addr));   /* 清0 */
-        server_addr.sin_family = AF_INET;           /* 协议族 */
-        server_addr.sin_addr.s_addr = htonl(INADDR_ANY);/* 本地地址 */
-        server_addr.sin_port = htons(SERVERPORT);         /* 服务器端口 */
+        //initiating the server address struct 
+        bzero(&server_addr, sizeof(server_addr));   
+        server_addr.sin_family = AF_INET;           
+        server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+        server_addr.sin_port = htons(SERVERPORT);         
 
-        /* 绑定地址结构到套接字描述符 */
+        //binding the socket to the server address struct
         err = bind(serSock, (struct sockaddr*)&server_addr, sizeof(server_addr));
-        if(err < 0){/* 出错 */
+        if(err < 0){
             perror("bind error");
             return -1;
         }
 
-        /* 设置侦听 */
+        //listening on a port to provice service
         err = listen(serSock, BACKLOG);
-        if(err < 0){/* 出错 */
+        if(err < 0){
             perror("listen error");
             return -1;  
         }
 
 
-
         socklen_t addrlen = sizeof(client_addr);
         printf("the server is waiting on prot: %d \n", SERVERPORT); 
 
-        /* 主循环过程 */
+     
         for(;;) 
         {
-
-
-            /* 接收客户端连接 */
+            //waiting to see if there is any connection to connect to the server
             cliSock = accept(serSock, (struct sockaddr*)&client_addr, &addrlen);
             printf("got a Client: \n"); 
 
-            if(cliSock < 0){     /* 出错 */
+            //accetping error, continue to next loop to accept it again
+            if(cliSock < 0){     
                 close(cliSock); 
-                continue;   /* 结束本次循环 */
+                continue;   
             };
 
+            //optimizing the socket timeout 
             err = optimi_socket(cliSock);
             if (err < 0) {
               perror("Couldn't optimize setting for cliSock.)");
               return -1;
             };
 
-
+            //testing the client address 
             if(inet_ntop(AF_INET,&client_addr.sin_addr.s_addr,client_name,sizeof(client_name)) == NULL)
             {
                 printf("Unable to get client address!\n",stderr);
                 close(cliSock); 
-                continue;   /* 结束本次循环 */
+                continue;  
 
             };
 
 
-            /* 建立一个新的进程处理到来的连接 */
-            pid2 = fork();       /* 分叉进程 */
-            if( pid2 == 0 )  /* 第二个子进程中 */
+            //successfully accepting a client connection, then fork a new child process to handle it
+            pid2 = fork();       
+            if( pid2 == 0 )  
             {     
-                close(serSock);      /* 在子进程中关闭服务器的侦听 */
-                process_conn_server(cliSock);/* 处理连接 */
+                close(serSock);      //close the listening socket in child process 
+                process_conn_server(cliSock); //call the function to handle the request
                 return 0;
 
                 
-            }else if ( pid2 > 0 )  /* 在父进程中关闭客户端的连接 */
+            }else if ( pid2 > 0 )  //close the client socket and go back to listen on a port for next connection
             {
-                /* code */
+
                 close(cliSock);  
             }else 
             {
@@ -160,16 +159,17 @@ int main(int argc, char *argv[])
     else{    //it is a slave server
 
         int cliSockSL;
-        struct sockaddr_in ma_server_addrSL; /* 服务器地址结构 */
+        struct sockaddr_in ma_server_addrSL; 
 
+        //it is a slave server, creating a connection to master server and sending the updating workload info to it
         printf("creating socket ... ... \n"); 
         cliSockSL = socket(AF_INET, SOCK_STREAM, 0);
-        if(cliSockSL < 0){/* 出错 */
+        if(cliSockSL < 0){
             printf("socket error\n");
             return -1;  
         };
 
-        /* Disable the Nagle (TCP No Delay) algorithm */
+        //optimizing the socket timeout 
         err = optimi_socket(cliSockSL);
         if (err < 0) {
           printf("Couldn't optimize setting for cliSock.)\n");
@@ -177,21 +177,21 @@ int main(int argc, char *argv[])
         };
 
 
-        /* 设置服务器地址 */
-        bzero(&ma_server_addrSL, sizeof(ma_server_addrSL));       /* 清0 */
-        ma_server_addrSL.sin_family = AF_INET;               /* 协议族 */
-        ma_server_addrSL.sin_addr.s_addr = htonl(INADDR_ANY);/* 本地地址 */
-        ma_server_addrSL.sin_port = htons(SERVERPORT);             /* 服务器端口 */
+        //initiating the server address struct 
+        bzero(&ma_server_addrSL, sizeof(ma_server_addrSL));       
+        ma_server_addrSL.sin_family = AF_INET;               
+        ma_server_addrSL.sin_addr.s_addr = htonl(INADDR_ANY);
+        ma_server_addrSL.sin_port = htons(SERVERPORT);            
 
-        /* 将用户输入的字符串类型的IP地址转为整型 */
+        //changing the string IP addr to a integer addr
         inet_pton(AF_INET, SERVERIP, &ma_server_addrSL.sin_addr); 
-        /* 连接服务器 */
+        //connecting to the master server
         printf("connecting to the master server:   %s: %d\n", SERVERIP, SERVERPORT); 
         connect(cliSockSL, (struct sockaddr*)&ma_server_addrSL, sizeof(struct sockaddr_in));
 
-        process_conn_clientSL(cliSockSL); /* 客户端处理过程 */
-        free(sharedM);
-        close(cliSockSL);   /* 关闭连接 */
+        //call the function to send workload info to the master server
+        process_conn_clientSL(cliSockSL); 
+        close(cliSockSL);   
         printf("exit\n");
         exit(0);
 
