@@ -1,15 +1,20 @@
 #!/bin/bash
-# Written by Chao,Zhang(104656305),March 5,2017
-# Usage:configure server
+# Written by Chao,Zhang(104656305),March 27,2017
+# Usage:Configure server name,server port,server number and twitter account then show configuration.
+#       1.configure local server
+#       2.configure cluster server
+#       3.configure twitter account
+#       4.show local server configuration
+#       5.show cluster server configuration
+#       6.show twitter configuration
 
+max=1             # the current max number of cluster servers
 
-counter=1
-
-menu()
+menu()                # user interface function
 {
 clear
-scriptname="Config.sh"    ##it is better to name it: Config.sh
-version=1.1.0
+scriptname="Config.sh"    
+version=2.1.0
 date=`date +%F.%T`
 
 cat <<MENULIST
@@ -22,7 +27,7 @@ This shell script can automatically complete the following configuration:
 
         1.configure local server
         2.configure master and cluster server
-	    3.configure twitter account
+		3.configure twitter account
         4.check local server configuration
         5.check master and cluster server configuration
         6.check twitter configuration
@@ -31,56 +36,57 @@ This shell script can automatically complete the following configuration:
 
 MENULIST
 
-echo -n "Please input your choice [1,2,3,4,5,6,b(back),q(quit)]:"
-read choice1
+echo -n "Please input your choice [1,2,3,4,5,6,b(back),q(quit)]:"    # first input choice
+read choice
 }
 
-function RewriteFile()  
+function RewriteFile()     # rewrite function
   {   
-      sed -i "/^\[$1\]/,/^\[/ {/^\$1\]/b;/^\[/b;s/^$2*=.*/$2=$3/g;}" $4
+      sed -i "/^\[$1\]/,/^\[/ {/^\$1\]/b;/^\[/b;s/^$2*=.*/$2=$3/g;}" $4      # find tag $1 target key string $2 change the value after = with $3 in file $4
   }  
 
-function ReadFile()
+function ReadFile()       # read function
   { 
-      awk -F '=' '/\['$1'\]/{a=1}a==1&&$1~/'$2'/{print $2;exit}' $3
+      awk -F '=' '/\['$1'\]/{a=1}a==1&&$1~/'$2'/{print $2;exit}' $3    # find tag $1 target key string $2 read the value after = in file $3
   }
   
   
   
-function localServer()
+function localServer()    # choice 1  
 {
      echo
      echo "Start configuring local server."
      echo "Guide:" 
-     echo "Please enter local server name."
+     echo "Please enter local server name."         
      read lsname
      echo "Please enter local server IP address."
      read lIP
      echo "Please enter local server port."	 
 	 read lport
-	 ##调用RewriteFile函数时有问题，写不了，第四个参数是一个保存文本文件，这写法是不是不对？
-	 # 保存文件建议命名为 Server.config, 区分当前的脚本文件 Config.sh，带sh一般是可执行文件
-	 # 调试了一下，提示sed的正则表达式写法有问题，可以百度一下sed 正则表达式用法，
-	 # 把上面函数的格式读懂，就知道哪里调用错了、传的参数是否正确等等。这个函数OK了，基本就OK了。
+	 echo "Please enter if local server is master server(1=YES/0=NO)."  # if local server is not master enter the number of it in the cluster
+	 read ljudger
+	 if [ "$ljudger" -eq 0 ] 
+	 then
+	       echo "Please enter the number of secondary server local server has(integer from 2 to 10)." 
+           read lsnumber
+		   while( [ "$lsnumber" -le 2 ] || [ "$lsnumber" -ge 10 ] )
+		   do
+		       echo -n "Please re-enter a interger from 2 to 10."
+		       read lsnumber
+		   done
+		   RewriteFile "Local_Server.config" "Secondary_Index" $lsnumber "./Server.config"   #do rewritefile
+     fi 
 	 RewriteFile "Local_Server.config" "Local_Server_Name" $lsname "./Server.config"
 	 RewriteFile "Local_Server.config" "Local_Server_IP" $lIP "./Server.config"
 	 RewriteFile "Local_Server.config" "Local_Server_Port" $lport "./Server.config"
+	 RewriteFile "Local_Server.config" "Master_Flag" $ljudger "./Server.config"
+	 
 	 echo "Finish configuration."
 	 echo
 }
 
-function clusterServer()
+function clusterServer()   #choice 2
 {
-    # 保存文件建议命名为 Server.config, 区分当前的脚本文件 Config.sh，带sh一般是可执行文件
-
-# 集群配置建议格式:
-# [Cluster_Server.config]
-# Cluster_Name=Center_Cluster
-# Number_Of_Servers=3
-    
-# Master_Server=defaultserver
-# Master_Server_IP=127.0.0.1
-# Master_Server_Port=0
 
 
 
@@ -106,21 +112,21 @@ function clusterServer()
 				  read  cIP[$i]
 				  echo "Please enter master server port."
 				  read  cport[$i]
-				  RewriteFile "Cluster_Server.config" "Master_Server" ${csname[$i]} "./Server.config"
+				  RewriteFile "Cluster_Server.config" "Master_Server" ${csname[$i]} "./Server.config"    
 	              RewriteFile "Cluster_Server.config" "Master_Server_IP" ${cIP[$i]} "./Server.config"
 	              RewriteFile "Cluster_Server.config" "Master_Server_Port" ${cport[$i]} "./Server.config"
 		    else
-			      grep -q "Secondary_Server_($i)_Name" ./Server.config
-			       if [ $? -ne 0 ] && [ $i -gt $counter ]
+			      grep -q "Secondary_Server_($i)_Name" ./Server.config  
+			       if [ $? -ne 0 ] && [ $i -gt $max ]  #if i is bigger than current max and secondary server i doesn't exist
 				   then
-			      cat <<EOF >> Server.config
+			      cat <<EOF >> Server.config    #append new secondary server information
 Secondary_Server_($i)_Name=defaultserver
 Secondary_Server_($i)_IP=0.0.0.0
 Secondary_Server_($i)_Port=0
 EOF
-			      counter=$[$counter+1]
+			      max=$[$max+1] # max=max+1
 			     
-		  fi
+		           fi
 			       
 			      echo "Please enter secondary server $i name."
 				  read  csname[$i]
@@ -140,9 +146,9 @@ EOF
 	 fi
 }
 
-function checkLocalServer()
+function checkLocalServer() #choice 4
 {
-     readlsname=$(ReadFile "Local_Server.config" "Local_Server_Name" "./Server.config")
+     readlsname=$(ReadFile "Local_Server.config" "Local_Server_Name" "./Server.config") # do readfile and send parameters
 	 readlIP=$(ReadFile "Local_Server.config" "Local_Server_IP" "./Server.config")
 	 readlport=$(ReadFile "Local_Server.config" "Local_Server_Port" "./Server.config")
      echo  
@@ -154,7 +160,7 @@ function checkLocalServer()
 	 echo
 }
 
-function checkClusterServer()
+function checkClusterServer() #choice 5
 {
      echo  
 	 echo "Start listing cluster server information."
@@ -163,24 +169,98 @@ function checkClusterServer()
 	 echo "Cluster   server  name        :$readclustername"
      echo "Number of servers in cluster  :$readclusternumber"
 	 echo
-     for ((k=1;k<=i;k++))
+	 let scounter=`grep "Secondary_Server_" ./Server.config|wc -l`/3
+     for ((k=1;k<=scounter+1;k++))  #use array to receive values of cluster servers which are read from file
 	 do
-	        if [ $k -eq 1 ]
+	        if [ $k -eq 1 ] 
 			then 
-			#readcsname[$k]=$(ReadFile "Cluster_Server.config" "Master_Server_Name" "./Server.config")
-	        #readcIP[$k]=$(ReadFile "Cluster_Server.config" "Master_Server_IP" "./Server.config")
-	        #readcport[$k]=$(ReadFile "Cluster_Server.config" "Master_Server_Port" "./Server.config")
-			      echo "Master    server  name        :${csname[$k]}"	
-				  echo "Master    server  IP address  :${cIP[$k]}"
-				  echo "Master    server  port        :${cport[$k]}"
+			      readcsname[1]=$(ReadFile "Cluster_Server.config" "Master_Server_Name" "./Server.config")
+	              readcIP[1]=$(ReadFile "Cluster_Server.config" "Master_Server_IP" "./Server.config")
+	              readcport[1]=$(ReadFile "Cluster_Server.config" "Master_Server_Port" "./Server.config")
+			      echo "Master    server  name        :${readcsname[1]}"	
+				  echo "Master    server  IP address  :${readcIP[1]}"
+				  echo "Master    server  port        :${readcport[1]}"
 				  echo
-		    else 
-			      #readcsname[$k]=$(ReadFile "Twitter.config" "Twitter_Name" "./Server.config")
-	              #readcIP[$k]=$(ReadFile "Cluster_Server.config" "Secondary_Server_($k)_IP" "./Server.config")
-	              #readcport[$k]=$(ReadFile "Cluster_Server.config" "Secondary_Server_($k)_Port" "./Server.config")
-			      echo "Secondary server $k name       :${csname[$k]}"	
-				  echo "Secondary server $k IP address :${cIP[$k]}"
-				  echo "Secondary server $k port       :${cport[$k]}"
+		    elif [ $k -eq 2 ]
+			then
+			      readcsname[2]=$(ReadFile "Cluster_Server.config" "Secondary_Server_(2)_Name" "./Server.config")
+	              readcIP[2]=$(ReadFile "Cluster_Server.config" "Secondary_Server_(2)_IP" "./Server.config")
+	              readcport[2]=$(ReadFile "Cluster_Server.config" "Secondary_Server_(2)_Port" "./Server.config")
+				  echo "Secondary server $k name       :${readcsname[2]}"	
+				  echo "Secondary server $k IP address :${readcIP[2]}"
+				  echo "Secondary server $k port       :${readcport[2]}"
+				  echo
+            elif [ $k -eq 3 ]
+			then
+			      readcsname[3]=$(ReadFile "Cluster_Server.config" "Secondary_Server_(3)_Name" "./Server.config")
+	              readcIP[3]=$(ReadFile "Cluster_Server.config" "Secondary_Server_(3)_IP" "./Server.config")
+	              readcport[3]=$(ReadFile "Cluster_Server.config" "Secondary_Server_(3)_Port" "./Server.config")
+				  echo "Secondary server $k name       :${readcsname[3]}"	
+				  echo "Secondary server $k IP address :${readcIP[3]}"
+				  echo "Secondary server $k port       :${readcport[3]}"
+				  echo
+			elif [ $k -eq 4 ]
+			then
+			      readcsname[4]=$(ReadFile "Cluster_Server.config" "Secondary_Server_(4)_Name" "./Server.config")
+	              readcIP[4]=$(ReadFile "Cluster_Server.config" "Secondary_Server_(4)_IP" "./Server.config")
+	              readcport[4]=$(ReadFile "Cluster_Server.config" "Secondary_Server_(4)_Port" "./Server.config")
+				  echo "Secondary server $k name       :${readcsname[4]}"	
+				  echo "Secondary server $k IP address :${readcIP[4]}"
+				  echo "Secondary server $k port       :${readcport[4]}"
+				  echo
+			elif [ $k -eq 5 ]
+			then
+			      readcsname[5]=$(ReadFile "Cluster_Server.config" "Secondary_Server_(5)_Name" "./Server.config")
+	              readcIP[5]=$(ReadFile "Cluster_Server.config" "Secondary_Server_(5)_IP" "./Server.config")
+	              readcport[5]=$(ReadFile "Cluster_Server.config" "Secondary_Server_(5)_Port" "./Server.config")
+				  echo "Secondary server $k name       :${readcsname[5]}"	
+				  echo "Secondary server $k IP address :${readcIP[5]}"
+				  echo "Secondary server $k port       :${readcport[5]}"
+				  echo
+			elif [ $k -eq 6 ]
+			then
+			      readcsname[6]=$(ReadFile "Cluster_Server.config" "Secondary_Server_(6)_Name" "./Server.config")
+	              readcIP[6]=$(ReadFile "Cluster_Server.config" "Secondary_Server_(6)_IP" "./Server.config")
+	              readcport[6]=$(ReadFile "Cluster_Server.config" "Secondary_Server_(6)_Port" "./Server.config")
+				  echo "Secondary server $k name       :${readcsname[6]}"	
+				  echo "Secondary server $k IP address :${readcIP[6]}"
+				  echo "Secondary server $k port       :${readcport[6]}"
+				  echo
+			elif [ $k -eq 7 ]
+			then
+			      readcsname[7]=$(ReadFile "Cluster_Server.config" "Secondary_Server_(7)_Name" "./Server.config")
+	              readcIP[7]=$(ReadFile "Cluster_Server.config" "Secondary_Server_(7)_IP" "./Server.config")
+	              readcport[7]=$(ReadFile "Cluster_Server.config" "Secondary_Server_(7)_Port" "./Server.config")
+				  echo "Secondary server $k name       :${readcsname[7]}"	
+				  echo "Secondary server $k IP address :${readcIP[7]}"
+				  echo "Secondary server $k port       :${readcport[7]}"
+				  echo
+			elif [ $k -eq 8 ]
+			then
+			      readcsname[8]=$(ReadFile "Cluster_Server.config" "Secondary_Server_(8)_Name" "./Server.config")
+	              readcIP[8]=$(ReadFile "Cluster_Server.config" "Secondary_Server_(8)_IP" "./Server.config")
+	              readcport[8]=$(ReadFile "Cluster_Server.config" "Secondary_Server_(8)_Port" "./Server.config")
+				  echo "Secondary server $k name       :${readcsname[8]}"	
+				  echo "Secondary server $k IP address :${readcIP[8]}"
+				  echo "Secondary server $k port       :${readcport[8]}"
+				  echo
+			elif [ $k -eq 9 ]
+			then
+			      readcsname[9]=$(ReadFile "Cluster_Server.config" "Secondary_Server_(9)_Name" "./Server.config")
+	              readcIP[9]=$(ReadFile "Cluster_Server.config" "Secondary_Server_(9)_IP" "./Server.config")
+	              readcport[9]=$(ReadFile "Cluster_Server.config" "Secondary_Server_(9)_Port" "./Server.config")
+				  echo "Secondary server $k name       :${readcsname[9]}"	
+				  echo "Secondary server $k IP address :${readcIP[9]}"
+				  echo "Secondary server $k port       :${readcport[9]}"
+				  echo
+			elif [ $k -eq 10 ]
+			then
+			      readcsname[10]=$(ReadFile "Cluster_Server.config" "Secondary_Server_(10)_Name" "./Server.config")
+	              readcIP[10]=$(ReadFile "Cluster_Server.config" "Secondary_Server_(10)_IP" "./Server.config")
+	              readcport[10]=$(ReadFile "Cluster_Server.config" "Secondary_Server_(10)_Port" "./Server.config")
+				  echo "Secondary server $k name       :${readcsname[10]}"	
+				  echo "Secondary server $k IP address :${readcIP[10]}"
+				  echo "Secondary server $k port       :${readcport[10]}"
 				  echo
 		    fi
 	 done
@@ -188,7 +268,7 @@ function checkClusterServer()
 	 echo
 }
 
-function twitter()
+function twitter() #choice 3
 {
      echo  
 	 echo "Start configure twitter account."
@@ -203,7 +283,7 @@ function twitter()
      RewriteFile "Twitter.config" "Twitter_Api_Key" $twitterApiKey "./Server.config"
 }
 
-function checkTwitter()
+function checkTwitter() #choice 6
 {
      readtname=$(ReadFile "Twitter.config" "Twitter_Name" "./Server.config")
 	 readtapi=$(ReadFile "Twitter.config" "Twitter_Api_Key" "./Server.config")
@@ -215,13 +295,15 @@ function checkTwitter()
 	 echo
 }
 
-if [ ! -f "Server.config" ]
+if [ ! -f "Server.config" ] #check if the file exist
 then 
-     cat <<EOF >> Server.config
+     cat <<EOF >> Server.config  #create and append default values
 [Local_Server.config]
 Local_Server_Name=Alpha_Server
 Local_Server_IP=127.0.0.1
 Local_Server_Port=18888
+Master_Flag=-1
+Secondary_Index=1
 
 [Twitter.config]
 Twitter_Name=Chao_Zhang
@@ -236,16 +318,10 @@ Master_Server_Port=0
 EOF
 fi
 
-# 本地服务器配置建议格式:
-# [Local_Server.config]
-# Local_Server_Name=Alpha_Server
-# Local_Server_IP=127.0.0.1
-# Local_Server_Port=18888
 
-
-for ((j=1;;j++))
+for ((j=1;;j++))   # main function
 do menu
-case "$choice1" in
+case "$choice" in
         "1")
                 localServer
                 ;;
@@ -265,13 +341,13 @@ case "$choice1" in
                 checkTwitter
                 ;;
         "b")
-                unset choice1
+                unset choice  #back
                 ;;
         "q")
-                exit 0
+                exit 0   #quit
                 ;;
 esac
-if [ ! "$choice1" = "" ]
+if [ ! "$choice" = "" ]
 then
         echo "Press any key to return!"
         read 
