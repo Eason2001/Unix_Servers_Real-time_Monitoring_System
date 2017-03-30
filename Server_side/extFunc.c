@@ -12,23 +12,23 @@
 #include <sys/shm.h>  //for memory sharing
 
 
-char SERVERIP[30]={0};       //Server IP addr
-int SERVERPORT=18888;       
+char SERVERIP[30]={0};  //Server IP addr
+int SERVERPORT=18888;   //Server port
 int SERVERSNUM=2;       // the number of servers in this cluster
 int MASTER_FLAG=0;      // label this server to be a master server or a slave server
 int SLAVE_INDEX=1;      // the index of this slave server if it is a slave server
 int BACKLOG=2;          // using for TCP listening sequence
 int shmid;              // sharing memory ID
-
 char Twitter_Api_Key[50]={0};   // used to send Twitter Message
 
 #define cfgFile "Server.config" // name of configuration file 
 #define CONLINELENGTH 100       // the maximum number of character of a line in configuration file
 
-
-int GetProfileString(char * profile, char * AppName, char * KeyName, char * KeyVal ); // function for read configuration items from a configuration file
-void init();                                        // function for initiating a server
-char* shellcmd(char* cmd, char* buff, int size);    // function for running a shell command, especially for obtaiing the server workload info and sending twitter message
+// function for read configuration items from a configuration file
+int GetProfileString(char * profile, char * AppName, char * KeyName, char * KeyVal ); 
+void init(); 
+// function for running a shell command, especially for obtaiing the server workload info and sending twitter message                                       // function for initiating a server
+char* shellcmd(char* cmd, char* buff, int size);    
 void monitor_workload_self();       // function for monitoring server's own workload information
 int optimi_socket(int s);           // function for optimizing the timeout of TCP connection
 void process_conn_server(int s);    // a master server to handle the request connection
@@ -38,7 +38,7 @@ void sig_proccess(int signo);       // function for handling the signal
 void sig_pipe(int sign);             // function for handling the signal
 
 
-//gobal struct for recording the server info
+//global struct for recording the server info
 struct serverPerform
 {
   int DISK_us, DISK_fr;
