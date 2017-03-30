@@ -26,7 +26,7 @@ char Twitter_Api_Key[50]={0};   // used to send Twitter Message
 
 // function for read configuration items from a configuration file
 int GetProfileString(char * profile, char * AppName, char * KeyName, char * KeyVal ); 
-void init(); 
+void init(); //used for initiating the server, including loading configuration, setting signal process, creating shared memory
 // function for running a shell command, especially for obtaiing the server workload info and sending twitter message                                       // function for initiating a server
 char* shellcmd(char* cmd, char* buff, int size);    
 void monitor_workload_self();       // function for monitoring server's own workload information
