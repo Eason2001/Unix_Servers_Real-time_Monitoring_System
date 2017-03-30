@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.sysmon.tab.sysmon.MainActivity">
+
+    <EditText
+        android:id="@+id/et_ip"
+        android:layout_width="229dp"
+        android:layout_height="46dp"
+        android:layout_marginLeft="16dp"
+        android:ems="10"
+        android:hint="192.168.1.1:18888"
+        android:inputType="text"
+        app:layout_constraintLeft_toLeftOf="parent"
+        tools:layout_editor_absoluteY="8dp" />
+
+    <Button
+        android:id="@+id/btn_connect"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Connect"
+        android:layout_marginEnd="14dp"
+        android:layout_marginRight="8dp"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="8dp"
+        app:layout_constraintLeft_toRightOf="@+id/et_ip"
+        android:layout_marginLeft="8dp"
+        app:layout_constraintHorizontal_bias="0.764" />
+
+    <TextView
+        android:id="@+id/tv_status"
+        android:layout_width="353dp"
+        android:layout_height="381dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintBottom_toTopOf="@+id/btn_list"
+        app:layout_constraintHorizontal_bias="0.6"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/et_ip"
+        app:layout_constraintVertical_bias="0.508"
+        tools:layout_editor_absoluteY="35dp" />
+
+    <Button
+        android:id="@+id/btn_list"
+        android:layout_width="353dp"
+        android:layout_height="48dp"
+        android:text="Server List"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginBottom="8dp"
+        android:layout_marginRight="8dp"
+        app:layout_constraintRight_toRightOf="parent"
+        android:layout_marginLeft="8dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintHorizontal_bias="0.533" />
+
+</android.support.constraint.ConstraintLayout>
