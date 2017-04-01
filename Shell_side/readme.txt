@@ -13,4 +13,4 @@
 # Then he can use the C file to get access to those information and process it.
 # Basically,C file will find the certain tag,target the speific item then get the value of it for further use.
 #
-# Apart from the shell,here also attached a sample file of Server.config.
+# Apart from the shell file,I also attach a sample file of Server.config here.
